@@ -1,0 +1,1215 @@
+/////////////////////////////////////////////////////
+// terms vs match
+/////////////////////////////////////////////////////
+
+
+
+GET books/book/_search?size=300
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "author_name": "Random House"
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET books/book/_search?size=300
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "author_name": "Random House"
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+/////////////////////////////////////////////////////
+// Create mapping
+/////////////////////////////////////////////////////
+
+PUT books
+{
+  "mappings": {
+    "book": {
+      "dynamic": false,
+      "properties": {
+        "title":    { "type": "text"  },
+        "author_name":     { "type": "text"  },
+        "price":      { "type": "float" },
+        "ebook_available": { "type": "boolean" },
+        "publish_date":  { "type":   "date" }
+      }
+  }
+ }
+}
+
+
+
+PUT books
+{
+  "mappings": {
+    "book": {
+      "dynamic": false,
+      "properties": {
+        "title": {
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type":  "keyword"
+            }
+          }
+        },
+        "author_name": {
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type":  "keyword"
+            }
+          }
+        },
+        "price":      { "type": "float" },
+        "ebook_available": { "type": "boolean" },
+        "publish_date":  { "type":   "date" }
+      }
+  }
+ }
+}
+
+
+
+
+/////////////////////////////////////////////////////
+// Update mapping
+/////////////////////////////////////////////////////
+
+PUT books/book/_mapping
+{
+
+  "properties": {
+    "title": {
+      "type": "text",
+      "fields": {
+        "raw": {
+          "type":  "keyword"
+        }
+      }
+    },
+    "author_name": {
+      "type": "text",
+      "fields": {
+        "raw": {
+          "type":  "keyword"
+        }
+      }
+    },
+    "price":      { "type": "float" },
+    "ebook_available": { "type": "boolean" },
+    "publish_date":  { "type":   "date" }
+  }
+}
+
+/////////////////// specifying analyzer
+
+PUT books/book/_mapping
+{
+
+  "properties": {
+    "title": {
+      "type": "text",
+      "fields": {
+        "raw": {
+          "type":  "keyword"
+        }
+      }
+    },
+    "author_name": {
+      "type": "text",
+      "analyzer": "whitespace",
+      "fields": {
+        "raw": {
+          "type":  "keyword"
+        }
+      }
+    },
+    "price":      { "type": "float" },
+    "ebook_available": { "type": "boolean" },
+    "publish_date":  { "type":   "date" }
+  }
+}
+
+
+
+/////////////////////////////////////////////////////
+// Create index
+/////////////////////////////////////////////////////
+PUT books
+{
+"settings": {
+  "analysis": {
+    "analyzer": {
+      "my_analyzer": {
+          "type":"custom",
+          "tokenizer":"whitespace",
+          "filter":[ "my_stop", "synonym"]
+      }
+    },
+    "filter" : {
+        "my_stop": {
+            "type" : "stop",
+            "stopwords": [" "]
+        },
+        "synonym" : {
+            "type" : "synonym",
+            "lenient": true,
+            "synonyms" : ["Random House => shalala"]
+        }
+    }
+  }
+},
+"mappings": {
+  "book": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": {
+          "raw": {
+            "type":  "keyword"
+          }
+        }
+      },
+      "author_name": {
+        "type": "text",
+        "analyzer": "my_analyzer",
+        "fields": {
+          "raw": {
+            "type":  "keyword"
+          }
+        }
+      },
+      "price":      { "type": "float" },
+      "ebook_available": { "type": "boolean" },
+      "publish_date":  { "type":   "date" }
+    }
+   }
+  }
+}
+
+
+
+/////////////////////////////////////////////////////
+// Add books
+/////////////////////////////////////////////////////
+
+
+
+POST books/book/_bulk
+{"index":{}}
+{"title" : "C.J.'s Fate", "author_name" : "", "price" : "286", "publish_date" : "1981-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chandrakanta", "author_name" : "Rupa Publications India", "price" : "278", "publish_date" : "1959-01-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Heart Of Dixie", "author_name" : "Random House", "price" : "359", "publish_date" : "1925-00-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Perfect Life", "author_name" : "Transworld Publishers", "price" : "315", "publish_date" : "1900-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Paulo Coelho The Golden Collection", "author_name" : "Books", "price" : "1949", "publish_date" : "1962-09-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Devil's Banker", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1974-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Brethren", "author_name" : "Dell", "price" : "479", "publish_date" : "1937-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Innocent", "author_name" : "Random House", "price" : "432", "publish_date" : "1966-08-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "True Love", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1947-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Warriors: Power of Three #3: Outcast", "author_name" : "Harper Collins Publishers India", "price" : "160", "publish_date" : "1988-00-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Item Girl", "author_name" : "Vsp International Science Publishers", "price" : "137", "publish_date" : "1941-08-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sanger In The Moonlight", "author_name" : "Pocket Books", "price" : "257", "publish_date" : "1931-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Happy Christmas; Maisy", "author_name" : "WALKER BOOKS", "price" : "450", "publish_date" : "1937-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Cube Book Flowers", "author_name" : "", "price" : "1119", "publish_date" : "1926-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Making Your Point", "author_name" : "St Martins Press", "price" : "1007", "publish_date" : "1994-03-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Blood Magic", "author_name" : "Berkley", "price" : "759", "publish_date" : "1947-08-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Lady Of The Rivers", "author_name" : "", "price" : "254", "publish_date" : "1959-03-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Lair", "author_name" : "Pan Macmillan UK", "price" : "658", "publish_date" : "1921-09-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Bestseller", "author_name" : "Alma Books", "price" : "209", "publish_date" : "1900-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Late For The Wedding", "author_name" : "Random House", "price" : "399", "publish_date" : "1938-03-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Summer", "author_name" : "Random House Publishing Group", "price" : "316", "publish_date" : "1951-00-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Walter Scott And Contemporary Theory", "author_name" : "Bloomsbury", "price" : "9146", "publish_date" : "1956-06-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alphabet Soup For Lovers", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1961-02-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Third Victim", "author_name" : "Random House", "price" : "399", "publish_date" : "1946-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "His Diamond of Convenience", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1902-08-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Golden Valkyrie", "author_name" : "Random House", "price" : "359", "publish_date" : "1994-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "First Comes Marriage", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1996-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Kiss My Math : Showing Pre-Algebra Who's", "author_name" : "PENGUIN USA", "price" : "719", "publish_date" : "1953-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "102 Minutes", "author_name" : "Henry Holt And Company", "price" : "839", "publish_date" : "1941-09-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Professor And The Siren", "author_name" : "New York Review Books", "price" : "598", "publish_date" : "1943-01-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Saving Grace", "author_name" : "Pan Macmillan India", "price" : "273", "publish_date" : "1978-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice In The Country Of Hearts: The Mad", "author_name" : "Seven Seas Entertainment Llc", "price" : "639", "publish_date" : "1907-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The 5th Horseman", "author_name" : "", "price" : "438", "publish_date" : "1952-03-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dead Aim", "author_name" : "Random House", "price" : "399", "publish_date" : "1998-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "My Husband Next Door", "author_name" : "Penguin", "price" : "249", "publish_date" : "1915-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Always", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1910-00-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Black Swan Green", "author_name" : "Hodder & Stoughton", "price" : "539", "publish_date" : "1990-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Daily Practice Problems for Theory of Equations  Complex Number", "author_name" : "Arihant Publications", "price" : "153", "publish_date" : "1953-01-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "George And The Unbreakable Code (Lead Title)", "author_name" : "Books", "price" : "349", "publish_date" : "1984-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Grassroots With Readings", "author_name" : "Cengage Learning", "price" : "5131", "publish_date" : "1937-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Good Fall", "author_name" : "Knopf Doubleday Publishing Group", "price" : "679", "publish_date" : "1926-02-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Mismatch", "author_name" : "Random House", "price" : "359", "publish_date" : "1979-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Decision", "author_name" : "Oxford University Press", "price" : "332", "publish_date" : "1993-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Autodesk Invtor 11 For Engineers and Designer", "author_name" : "Dreamtech Press", "price" : "549", "publish_date" : "1981-02-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Stranded", "author_name" : "Anchor", "price" : "399", "publish_date" : "1985-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "White Satin", "author_name" : "Random House", "price" : "399", "publish_date" : "1949-08-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "How to Sell Anything to Anybody", "author_name" : "", "price" : "271", "publish_date" : "1984-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Best Laid Plans", "author_name" : "", "price" : "350", "publish_date" : "1947-02-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Hologram For The King", "author_name" : "Random House", "price" : "717", "publish_date" : "1916-09-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Secret Of Shambhala: In Search Of The Eleventh Insight- The", "author_name" : "Oxford University Press", "price" : "397", "publish_date" : "1986-01-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Woman Of Independent Means", "author_name" : "Penguin Books", "price" : "719", "publish_date" : "1940-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Second Chance at Love", "author_name" : "Harper Collins Publishers India", "price" : "112", "publish_date" : "1964-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Are You The One For Me?", "author_name" : "Harper Collins Publishers India", "price" : "255", "publish_date" : "1901-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "An Absolute Scandal", "author_name" : "", "price" : "289", "publish_date" : "1958-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Book Of Gold Leaves", "author_name" : "Vintage", "price" : "399", "publish_date" : "1978-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Survivor", "author_name" : "Penguin", "price" : "249", "publish_date" : "1923-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Simply Love", "author_name" : "Random House", "price" : "399", "publish_date" : "1943-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Adventures of Nonu The Skating Squirrel", "author_name" : "", "price" : "84", "publish_date" : "1910-05-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Star Wars : A Galactic Pop Up Adventure", "author_name" : "Scholastic", "price" : "1853", "publish_date" : "1904-02-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice In The Country Of Joker: Circus An", "author_name" : "October", "price" : "599", "publish_date" : "1915-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dork Diaries: Once Upon A Dork", "author_name" : "Simon & Schuster", "price" : "239", "publish_date" : "1930-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Men Are From Mars  Women Are From Venus", "author_name" : "To Excelkaleidoscope Sof", "price" : "158", "publish_date" : "1959-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Family", "author_name" : "", "price" : "319", "publish_date" : "1970-04-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sliver Of Truth", "author_name" : "Vintage", "price" : "399", "publish_date" : "1910-05-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "In Bed With A Highlander", "author_name" : "Random House", "price" : "399", "publish_date" : "1929-00-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Inimitable Jeeves", "author_name" : "Random House", "price" : "224", "publish_date" : "1956-05-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The World of Ice and Fire", "author_name" : "HarperCollins", "price" : "1599", "publish_date" : "1900-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Schaum's Easy Outline Of Electric Circuits chaum's Easy Outlines", "author_name" : "Tata Mcgraw - Hill Education", "price" : "595", "publish_date" : "1992-01-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "And Thereby Hangs A Tale", "author_name" : "HARPER COLLINS INDIA", "price" : "280", "publish_date" : "1986-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Temple Of My Familiar", "author_name" : "Mariner Books", "price" : "859", "publish_date" : "1962-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Klone And I", "author_name" : "Random House", "price" : "399", "publish_date" : "1988-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Everlasting", "author_name" : "Random House", "price" : "370", "publish_date" : "1988-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "All the ways to Ruin a Rogue", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1919-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "He Sees You When You'Re Sleeping", "author_name" : "Pocket Books", "price" : "315", "publish_date" : "1952-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Gumrah : 11 Short Teen Crime Stories", "author_name" : "Rupa Publications India", "price" : "144", "publish_date" : "1953-05-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Charlotte Temple", "author_name" : "Random House Publishing Group", "price" : "679", "publish_date" : "1993-00-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Harry Potter And The Order Of The Phoenix", "author_name" : "Books", "price" : "475", "publish_date" : "1986-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Prince And The Pauper", "author_name" : "Oxford University Press", "price" : "140", "publish_date" : "1960-02-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Cassandra Sanction", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1961-00-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Other Daughter", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1979-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Light In The Ruins", "author_name" : "Diversified Publishing", "price" : "908", "publish_date" : "1960-01-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Faithless", "author_name" : "Headline Book Publishing", "price" : "249", "publish_date" : "1957-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Entertaining Mr Stone", "author_name" : "Ebury Publishing", "price" : "710", "publish_date" : "1939-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Family Ties", "author_name" : "", "price" : "399", "publish_date" : "1961-04-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fist Of God", "author_name" : "Random House", "price" : "399", "publish_date" : "1909-05-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Waiting for Sunrise", "author_name" : "Bloomsbury", "price" : "410", "publish_date" : "1914-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "180 More", "author_name" : "Random House Publishing Group", "price" : "717", "publish_date" : "1940-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Pursued", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1973-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Life Of Pi", "author_name" : "Mariner Books", "price" : "389", "publish_date" : "1921-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Coming Of The Storm", "author_name" : "Pocket Books", "price" : "363", "publish_date" : "1969-00-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Love Lessons", "author_name" : "", "price" : "325", "publish_date" : "1938-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Night Of Thunder", "author_name" : "Pocket Books", "price" : "434", "publish_date" : "1995-04-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Speaker For The Dead", "author_name" : "Miscellaneous", "price" : "399", "publish_date" : "1924-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Temporary Wife/A Promise Of Spring", "author_name" : "RANDOM HOUSE INDIA", "price" : "399", "publish_date" : "1948-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Tidings Of Great Joy", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1922-01-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Body Of Lies", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1951-05-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Summons", "author_name" : "Dell", "price" : "421", "publish_date" : "1979-02-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Wind In The Willows", "author_name" : "Random House Publishing Group", "price" : "560", "publish_date" : "1931-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Words : From Here  There And Everywhere Or My Private Babel", "author_name" : "Harper Collins Publishers India", "price" : "191", "publish_date" : "1911-03-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Go Getter Girl's Guide", "author_name" : "St Martin'S Griffin", "price" : "1173", "publish_date" : "1966-09-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dare The", "author_name" : "Transworld", "price" : "111", "publish_date" : "1908-08-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "His Pregnant Princess Bride", "author_name" : "Harper Collins Publishers India", "price" : "150", "publish_date" : "1953-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Let Sleeping Rogues Lie", "author_name" : "Pocket Books", "price" : "247", "publish_date" : "1975-04-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Immortalis", "author_name" : "Random House Publishing Group", "price" : "359", "publish_date" : "1937-06-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Hawaii", "author_name" : "Random House", "price" : "1276", "publish_date" : "1914-08-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "SALIM MUST DIE", "author_name" : "Harper Collins Publishers India", "price" : "144", "publish_date" : "1946-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Trustworthy Redhead", "author_name" : "Loveswept", "price" : "399", "publish_date" : "1987-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Princess Charming", "author_name" : "RANDOM HOUSE INDIA", "price" : "399", "publish_date" : "1939-01-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Confession", "author_name" : "Dell", "price" : "259", "publish_date" : "1983-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Character Cake Toppers", "author_name" : "FW MEDIA", "price" : "1551", "publish_date" : "1926-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Road To Dune", "author_name" : "India Book Distributors", "price" : "439", "publish_date" : "1936-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Heartwood", "author_name" : "Bantam", "price" : "399", "publish_date" : "1962-09-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Cocktail Time", "author_name" : "Random House", "price" : "224", "publish_date" : "1987-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Every Man Dies Alone", "author_name" : "Melville House", "price" : "1106", "publish_date" : "1928-09-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Calling of the Grave", "author_name" : "Bantam", "price" : "224", "publish_date" : "1902-08-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Why We Love The Way We Do", "author_name" : "Westland", "price" : "170", "publish_date" : "1971-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Business Bestsellers in a Nutshell", "author_name" : "Unicorn Books", "price" : "342", "publish_date" : "1920-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Baby Contract", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1976-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "And Thereby Hangs A Tale", "author_name" : "Pan Books", "price" : "194", "publish_date" : "1956-05-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Visions In Death", "author_name" : "PENGUIN USA", "price" : "399", "publish_date" : "1934-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Asterix Omnibus 6", "author_name" : "Orion Publishing Group", "price" : "1551", "publish_date" : "1978-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ransome", "author_name" : "Dell", "price" : "259", "publish_date" : "1980-08-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "And Then You Die", "author_name" : "Random House", "price" : "399", "publish_date" : "1965-08-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ordinary Thunderstorms [Paperback]", "author_name" : "Penguin Books", "price" : "249", "publish_date" : "1942-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "How Children Succeed", "author_name" : "Random House", "price" : "299", "publish_date" : "1973-02-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Tristan Betrayal", "author_name" : "", "price" : "399", "publish_date" : "1958-07-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Wanted Man", "author_name" : "Bantam Press", "price" : "1177", "publish_date" : "1948-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Jedi Healer: Star Wars", "author_name" : "Lucasbooks", "price" : "359", "publish_date" : "1974-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Always", "author_name" : "Random House", "price" : "359", "publish_date" : "1931-02-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Austerlitz", "author_name" : "Random House Publishing Group", "price" : "759", "publish_date" : "1902-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fish Tales", "author_name" : "Hodder & Stoughton", "price" : "259", "publish_date" : "1930-06-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Forgotten", "author_name" : "Random House", "price" : "359", "publish_date" : "1962-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Shadow Account", "author_name" : "Ballantine Books", "price" : "399", "publish_date" : "1993-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "All For You", "author_name" : "Vintage", "price" : "319", "publish_date" : "1965-02-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Hollywood Divorces", "author_name" : "Pocket Books", "price" : "225", "publish_date" : "1994-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Flat Belly Diet! Diabeties", "author_name" : "Pan Macmillan", "price" : "1108", "publish_date" : "1924-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Jacqueline Wilson Treasury", "author_name" : "Random House", "price" : "957", "publish_date" : "1959-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Elizabeth", "author_name" : "Dell", "price" : "378", "publish_date" : "1957-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Innocent In Death", "author_name" : "PENGUIN USA", "price" : "399", "publish_date" : "1975-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dragons Fire", "author_name" : "Random House", "price" : "399", "publish_date" : "1914-05-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Daily Practice Problems for Permutations - Combinations And Probability (Mathematics Volume-2)", "author_name" : "Arihant", "price" : "168", "publish_date" : "1981-01-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "My Uncle Napoleon", "author_name" : "Random House", "price" : "719", "publish_date" : "1985-09-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Baby For The Boss", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1995-02-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "False Memory", "author_name" : "Random House Publishing Group", "price" : "479", "publish_date" : "1975-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "One Secret Night  One Secret Baby", "author_name" : "Harper Collins Publishers India", "price" : "150", "publish_date" : "1973-07-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories by Jack London", "author_name" : "", "price" : "98", "publish_date" : "1907-00-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Attackers Advantage", "author_name" : "Perseus Book Group", "price" : "559", "publish_date" : "1906-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Creation In Death", "author_name" : "PENGUIN USA", "price" : "399", "publish_date" : "1923-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Inner Game Of Tennis", "author_name" : "Pan Macmillan", "price" : "259", "publish_date" : "1933-04-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Street Of A Thousand Blossoms", "author_name" : "Griffin", "price" : "759", "publish_date" : "1930-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Warriors: Power of Three #1: The Sight", "author_name" : "Harper Collins Publishers India", "price" : "160", "publish_date" : "1923-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bridges of Constantine", "author_name" : "Books", "price" : "299", "publish_date" : "1977-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Raven On The Wing", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1908-08-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Eve", "author_name" : "Simon & Schuster", "price" : "279", "publish_date" : "1979-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The House Of Mirth", "author_name" : "RHUS (RS)", "price" : "276", "publish_date" : "1987-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "For All Time", "author_name" : "Random House Publishing Group", "price" : "455", "publish_date" : "1921-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chill Of Fear", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1949-08-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "You Against Me", "author_name" : "Rhcp", "price" : "289", "publish_date" : "1974-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Demon From The Dark", "author_name" : "Pocket Books", "price" : "363", "publish_date" : "1973-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Precious Jewel", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1975-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Knights Of Sidonia, Volume 6", "author_name" : "Vertical", "price" : "598", "publish_date" : "1913-04-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rendezvous", "author_name" : "RANDOM CENTURY GROUP", "price" : "399", "publish_date" : "1925-06-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "To Bed A Beauty", "author_name" : "Random House", "price" : "399", "publish_date" : "1944-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bourne Objective", "author_name" : "Orion Publishing Group", "price" : "299", "publish_date" : "1987-08-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Golden Son", "author_name" : "Harper Collins Publishers India", "price" : "319", "publish_date" : "1925-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Slow Burn", "author_name" : "", "price" : "286", "publish_date" : "1900-04-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Julia", "author_name" : "Random House", "price" : "717", "publish_date" : "1976-00-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "PURSUIT OF HONOUR", "author_name" : "Pocket Books - New York", "price" : "263", "publish_date" : "1934-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Mountain Lion", "author_name" : "New York Review Books", "price" : "676", "publish_date" : "1913-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Becoming Indian: The Unfinished Revolution of Culture And Identity", "author_name" : "HARPER COLLINS INDIA", "price" : "279", "publish_date" : "1942-09-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Joy Of Sex", "author_name" : "Mitchell Beazley", "price" : "716", "publish_date" : "1921-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Runaway", "author_name" : "Random House", "price" : "249", "publish_date" : "1950-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Cruel Stars Of The Night", "author_name" : "St Martin'S Press", "price" : "719", "publish_date" : "1964-00-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Vixen 03", "author_name" : "Random House Publishing Group", "price" : "479", "publish_date" : "1919-02-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ragged Dick", "author_name" : "Random House Publishing Group", "price" : "555", "publish_date" : "1913-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Shadowfever", "author_name" : "RANDOM HOUSE INDIA", "price" : "399", "publish_date" : "1901-05-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Charlie and the chocolate Factory", "author_name" : "Penguin", "price" : "280", "publish_date" : "1963-07-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Batman: Fear Itself", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1932-09-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Last Words", "author_name" : "Random House", "price" : "399", "publish_date" : "1933-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Untill The End Of Time", "author_name" : "Dell", "price" : "399", "publish_date" : "1934-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rome 1960: The Olympics that Changed the World", "author_name" : "Simon & Schuster", "price" : "1051", "publish_date" : "1937-07-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sleeping With Fear", "author_name" : "Bantam Books", "price" : "380", "publish_date" : "1912-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Doll", "author_name" : "Books", "price" : "628", "publish_date" : "1904-06-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Questions Are The Answers", "author_name" : "", "price" : "67", "publish_date" : "1989-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sheila Levine Is Dead And Living In New York", "author_name" : "Overlook", "price" : "942", "publish_date" : "1964-09-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Trinity", "author_name" : "Corgi", "price" : "585", "publish_date" : "1919-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bridges of Constantine", "author_name" : "Bloomsbury Publishing", "price" : "371", "publish_date" : "1994-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Host", "author_name" : "Pan Macmillan", "price" : "315", "publish_date" : "1913-01-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "There's Something About You", "author_name" : "Harper Collins Publishers India", "price" : "112", "publish_date" : "1957-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "How Not To Be Afraid Of Your Own Life", "author_name" : "Griffin", "price" : "839", "publish_date" : "1983-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Mysterious Island", "author_name" : "Random House Publishing Group", "price" : "397", "publish_date" : "1915-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The House Of The Spirits", "author_name" : "Knopf Doubleday Publishing Group", "price" : "1475", "publish_date" : "1942-01-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "One Touch Of Topaz", "author_name" : "Random House", "price" : "399", "publish_date" : "1901-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Gone Girl", "author_name" : "Orion Publishing Group", "price" : "219", "publish_date" : "1995-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "William Shakespeare's The Phantom Of Menace", "author_name" : "Quirk Books", "price" : "676", "publish_date" : "1983-05-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Midnight in Death/Interlude in Death", "author_name" : "Little- Brown Book Group", "price" : "299", "publish_date" : "1940-04-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "THE RESUME MAKEOVER", "author_name" : "MCGRAW-HILL EDUCATION (ASIA)", "price" : "1308", "publish_date" : "1990-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Knights Of Sidonia, Volume 5", "author_name" : "Vertical", "price" : "689", "publish_date" : "1914-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The House Of The Spirits", "author_name" : "", "price" : "299", "publish_date" : "1968-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Eligible", "author_name" : "", "price" : "245", "publish_date" : "1996-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Reckless", "author_name" : "Harper Collins", "price" : "160", "publish_date" : "1962-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Never Kiss Your Best Friend", "author_name" : "Rupa Publications", "price" : "137", "publish_date" : "1921-03-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Lost And Found", "author_name" : "Random House", "price" : "533", "publish_date" : "1993-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Recessional", "author_name" : "Random House", "price" : "568", "publish_date" : "1986-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "SS Tell Me Your Dreams EP", "author_name" : "Surendra Publications", "price" : "245", "publish_date" : "1998-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Brisingr", "author_name" : "Rhcp", "price" : "259", "publish_date" : "1958-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Palace Of Illusions", "author_name" : "Knopf Doubleday Publishing Group", "price" : "717", "publish_date" : "1935-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dark Angel/Lord Carew's Bride", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1948-06-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dustbin Baby", "author_name" : "", "price" : "175", "publish_date" : "1974-09-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Virtues Of War", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1951-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Notorious", "author_name" : "BANTAM BOOKS(PB)", "price" : "399", "publish_date" : "1992-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Come to Grief", "author_name" : "Pan Macmillan", "price" : "150", "publish_date" : "1918-03-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Because Shit Happened", "author_name" : "Ebury Press- Random House India", "price" : "113", "publish_date" : "1948-00-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bascombe Novels", "author_name" : "Knopf Doubleday Publishing Group", "price" : "2177", "publish_date" : "1952-00-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Hollywood Wives The New Generatiopa", "author_name" : "Pocket Books", "price" : "249", "publish_date" : "1999-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Buddha: A Story of Enlightenment", "author_name" : "HarperCollins India Original", "price" : "316", "publish_date" : "1910-01-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Foreign Correspondent", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1901-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Romance Collection", "author_name" : "Vsp International Science Publishers", "price" : "224", "publish_date" : "1934-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Stranger In Cold Creek", "author_name" : "Harper Collins Publishers India", "price" : "150", "publish_date" : "1998-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Swallowing Darkness", "author_name" : "Random House", "price" : "399", "publish_date" : "1940-03-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Bloodfever", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1901-06-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Home Renovation Checklist: Everything You Need To Know To Save Money- Time- And Your Sanity", "author_name" : "MCGRAW-HILL EDUCATION (ASIA)", "price" : "1431", "publish_date" : "1971-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Charlie And Lola: I Am Not Sleepy And I Will Not Go To Bed", "author_name" : "Hachette Children'S Books", "price" : "299", "publish_date" : "1917-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Daily Practice Problems for Laws of Motion  Work  Power", "author_name" : "Arihant Publications", "price" : "180", "publish_date" : "1950-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "HEARTWARMING & WICKED STORIES 2-IN-1", "author_name" : "", "price" : "207", "publish_date" : "1945-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Broker", "author_name" : "Dell", "price" : "418", "publish_date" : "1930-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Mother'S Milk", "author_name" : "Pan Macmillan", "price" : "315", "publish_date" : "1952-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Fall Of Lucas Kendrick", "author_name" : "Spectra", "price" : "399", "publish_date" : "1907-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Bodyguard", "author_name" : "PUFFIN BOOKS", "price" : "263", "publish_date" : "1973-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "See Me", "author_name" : "Little, Brown Book Group", "price" : "219", "publish_date" : "1950-05-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Tempted : The House Of Night - 6", "author_name" : "", "price" : "319", "publish_date" : "1999-08-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Zero Game", "author_name" : "", "price" : "251", "publish_date" : "1915-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Judas Unchained", "author_name" : "Pan Macmillan", "price" : "371", "publish_date" : "1940-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dreamfever", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1993-01-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "LOCKSMITH AND SECURITY PROFESSIONALS EXAM STUDY GUIDE STG Edition", "author_name" : "Mcgh Org", "price" : "3245", "publish_date" : "1978-01-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Leader's Handbook SPI 1st Edition", "author_name" : "Tata McGraw - Hill Education", "price" : "1920", "publish_date" : "1979-05-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Whip Hand", "author_name" : "Macmillian", "price" : "150", "publish_date" : "1911-08-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Vintage Guide To Love And Romance", "author_name" : "Pan Macmillan", "price" : "263", "publish_date" : "1993-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The World Of Ice And Fire", "author_name" : "Harper Collins Publishers India", "price" : "1279", "publish_date" : "1960-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Red Hot", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1983-08-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Bloodline", "author_name" : "Vintage", "price" : "319", "publish_date" : "1912-09-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Vampire Diaries: 3: The Fury", "author_name" : "", "price" : "249", "publish_date" : "1943-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice Adams", "author_name" : "Ballantine Books", "price" : "676", "publish_date" : "1923-03-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Twilight - Tenth Anniversary Edition", "author_name" : "Little, Brown Book Group", "price" : "550", "publish_date" : "1990-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Journeys in the Night : Untold Stories from India?s Best-Known Writers", "author_name" : "Random House India", "price" : "236", "publish_date" : "1901-07-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Shrine", "author_name" : "Pan Macmillan UK", "price" : "654", "publish_date" : "1907-09-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Turned", "author_name" : "BANTAM", "price" : "399", "publish_date" : "1996-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Thank You For Smoking", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1988-07-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "I"ll Catch You", "author_name" : "Hachette Book Publishing", "price" : "338", "publish_date" : "1992-08-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bridges of Constantine", "author_name" : "Books", "price" : "299", "publish_date" : "1997-04-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Skinny Legs And All", "author_name" : "BANTAM BOOKS", "price" : "719", "publish_date" : "1908-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rafferty's Wife", "author_name" : "RANDOM HOUSE PUBLISHERS", "price" : "399", "publish_date" : "1954-02-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Forrest Gump", "author_name" : "Black Swan", "price" : "299", "publish_date" : "1901-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Murder List", "author_name" : "Random House", "price" : "399", "publish_date" : "1988-00-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The City Of Ember", "author_name" : "Random House Children's Books", "price" : "455", "publish_date" : "1971-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories By Nathaniel Hawthorne", "author_name" : "Rupa Publications India", "price" : "107", "publish_date" : "1927-06-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sum Of All Fears", "author_name" : "Harper Collins", "price" : "249", "publish_date" : "1984-04-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sand", "author_name" : "Random House", "price" : "259", "publish_date" : "1998-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The King's Buccaneer", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1995-02-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Hopes And Prospects", "author_name" : "Haymarket Books", "price" : "759", "publish_date" : "1979-07-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ashes Of Midnight", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1982-05-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fish! Sticks", "author_name" : "Hodder & Stoughton", "price" : "311", "publish_date" : "1978-09-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories Of H. G. Wells", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1941-05-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Life The Year In Pictures", "author_name" : "Hachette Book Group", "price" : "954", "publish_date" : "1964-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Lessons Of Desire", "author_name" : "Random House Publishing Group", "price" : "370", "publish_date" : "1903-04-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Life And Times Of The Thunderbolt Kid", "author_name" : "Tor", "price" : "1429", "publish_date" : "1960-09-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Return Of Antonides", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1915-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Act Of War", "author_name" : "SIMON", "price" : "227", "publish_date" : "1963-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Chairman", "author_name" : "Random House", "price" : "426", "publish_date" : "1951-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Writer's Eye", "author_name" : "", "price" : "649", "publish_date" : "1962-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories", "author_name" : "", "price" : "98", "publish_date" : "1964-08-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories By Alexandre Dumas", "author_name" : "Rupa Publications India", "price" : "98", "publish_date" : "1988-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Prince Of Stories", "author_name" : "St Martin'S Griffin", "price" : "1628", "publish_date" : "1956-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Far Side Gallery 2", "author_name" : "Andrews Mcmeel Publishing", "price" : "1183", "publish_date" : "1908-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Forsaken", "author_name" : "Ballantine Books", "price" : "399", "publish_date" : "1946-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "I AM AN EXECUTIONER LOVE STORIES", "author_name" : "BLOOMSBURY PUBLISHING PLc-", "price" : "279", "publish_date" : "1973-04-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Box Of Love And Laughter", "author_name" : "Harper Collins Publishers India", "price" : "350", "publish_date" : "1900-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Darkfever", "author_name" : "Random House", "price" : "399", "publish_date" : "1963-08-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Long Road Home- The", "author_name" : "", "price" : "249", "publish_date" : "1961-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sebastian Bergman", "author_name" : "Vintage", "price" : "399", "publish_date" : "1978-04-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Phantom Menace: Star Wars: Episode I", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1912-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "At the Count's Bidding", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1935-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Kabul Beauty School", "author_name" : "Little Brown Book Group", "price" : "324", "publish_date" : "1958-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Name Of The Rose", "author_name" : "Knopf Doubleday Publishing Group", "price" : "1508", "publish_date" : "1983-06-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Amelia", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1996-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "On Sunset Beach", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1916-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Nights In Rodanthe", "author_name" : "", "price" : "280", "publish_date" : "1977-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Secret Pearl", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1961-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Mastery Manual", "author_name" : "Jaico Publishing House", "price" : "138", "publish_date" : "1929-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Just Java 2 6Th Edition", "author_name" : "Pearson", "price" : "3376", "publish_date" : "1904-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Zero Percentile - 2.0: Missed IIT Kissed Gurgaon", "author_name" : "Rupa Publication", "price" : "105", "publish_date" : "1991-07-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "After America", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1937-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Wise Mans Fear: The Kingkiller Chronicle: Book 2", "author_name" : "Hachette Books", "price" : "499", "publish_date" : "1957-03-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Capture The Rainbow", "author_name" : "Random House", "price" : "359", "publish_date" : "1938-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Touch The Horizon", "author_name" : "Random House", "price" : "315", "publish_date" : "1976-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Wedding Of Zein", "author_name" : "New York Review Books", "price" : "639", "publish_date" : "1905-05-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fault in Our Stars; (MTI)", "author_name" : "Books", "price" : "151", "publish_date" : "1979-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "From the Eye of My Mind", "author_name" : "Ebury Press - Random House India", "price" : "224", "publish_date" : "1904-09-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Journey To The Center Of The Earth", "author_name" : "RHUS (RS)", "price" : "144", "publish_date" : "1983-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Inside The Obriens", "author_name" : "Simon & Schuster", "price" : "440", "publish_date" : "1903-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Delux Collection", "author_name" : "", "price" : "2099", "publish_date" : "1907-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Masterpieces Of World Non-Fiction", "author_name" : "Rupa Publications India", "price" : "107", "publish_date" : "1998-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "In Serena's Web", "author_name" : "Random House", "price" : "399", "publish_date" : "1937-02-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Soulful Seeker", "author_name" : "OM BOOKS INTERNATIONAL", "price" : "206", "publish_date" : "1929-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "If There Be Dragons", "author_name" : "Random House", "price" : "359", "publish_date" : "1989-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Weed That Strings The Hangman's Bag", "author_name" : "Random House Publishing Group", "price" : "679", "publish_date" : "1958-00-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Bone Garden", "author_name" : "Random House", "price" : "399", "publish_date" : "1978-07-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Love, Dishonor, Marry, Die, Cherish, Perish", "author_name" : "Knopf Doubleday Publishing Group", "price" : "918", "publish_date" : "1913-09-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Way Were Working Isnt Working", "author_name" : "Simon and Schuster", "price" : "699", "publish_date" : "1910-02-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "I  Ripper", "author_name" : "Simon & Schuster", "price" : "545", "publish_date" : "1972-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rebel", "author_name" : "Hachette Book Publishing", "price" : "449", "publish_date" : "1987-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice In The Country Of Joker: Circus An", "author_name" : "Seven Seas Entertainment Llc", "price" : "599", "publish_date" : "1918-03-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Summer To Remember", "author_name" : "Random House", "price" : "399", "publish_date" : "1983-06-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Irreligion", "author_name" : "Amacom Books", "price" : "639", "publish_date" : "1974-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alphabet Weekends", "author_name" : "Hodder & Stoughton Paperbacks", "price" : "289", "publish_date" : "1948-06-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Frostbite", "author_name" : "Penguin", "price" : "311", "publish_date" : "1954-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The General", "author_name" : "", "price" : "280", "publish_date" : "1991-09-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chaos Of The Senses", "author_name" : "Bloomsbury", "price" : "371", "publish_date" : "1997-09-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ripley's Believe It Or Not Eye Popp", "author_name" : "Ripley Publishing", "price" : "697", "publish_date" : "1999-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Storm Of Swords (HBO Tie-In Edition): A Song Of Ice And Fire: Book Three", "author_name" : "Random House", "price" : "827", "publish_date" : "1978-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Caine's Law", "author_name" : "Del Rey", "price" : "1068", "publish_date" : "1917-02-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Midnight Show Murders", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1931-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The 3RD Woman", "author_name" : "Harper Collins Publishers India", "price" : "255", "publish_date" : "1982-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Killer Dreams", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1985-03-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chetan Bhagat Combo of 3 Books", "author_name" : "Rupa Publications", "price" : "500", "publish_date" : "1925-06-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Kiss Of Fate", "author_name" : "Ivy Books", "price" : "399", "publish_date" : "1915-06-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Playing by the Greek's Rules", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1994-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Gathering Of Friends : My Favourite Stories", "author_name" : "Aleph Book Company", "price" : "178", "publish_date" : "1964-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fifty Shades Trilogy: Fifty Shades Of Grey  Fifty Shades Darker  Fifty Shades Freed 3-Volume Boxed Set", "author_name" : "Knopf Doubleday Publishing Group", "price" : "2690", "publish_date" : "1990-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Villa Incognito", "author_name" : "RC", "price" : "605", "publish_date" : "1944-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Summer With My Sister", "author_name" : "Pan", "price" : "389", "publish_date" : "1924-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Iced", "author_name" : "RANDOM HOUSE INDIA", "price" : "399", "publish_date" : "1942-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Kitaro", "author_name" : "Drawn And Quarterly Pubns", "price" : "1426", "publish_date" : "1926-00-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Patriots Club", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1962-05-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Awful Auntie", "author_name" : "Harper Collins Publishers India", "price" : "255", "publish_date" : "1963-02-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "One Day At A Time", "author_name" : "Dell", "price" : "259", "publish_date" : "1957-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Marry Me Stranger", "author_name" : "Ebury Press", "price" : "123", "publish_date" : "1952-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Toll the Hounds (Malazan Book of the Fallen- #8)", "author_name" : "", "price" : "450", "publish_date" : "1947-09-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Another Chance", "author_name" : "Anmol Publications", "price" : "207", "publish_date" : "1984-09-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Rats", "author_name" : "Pan Macmillan India", "price" : "654", "publish_date" : "1917-06-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice Country Clover: Knight's Knowledge", "author_name" : "Seven Seas", "price" : "639", "publish_date" : "1972-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Murder Bag", "author_name" : "Random House", "price" : "399", "publish_date" : "1998-03-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "William Shakespeare's Star Wars Trilogy: The Royal Imperial Boxed Set", "author_name" : "Quirk Books", "price" : "2570", "publish_date" : "1945-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Einstein Code", "author_name" : "Pan Macmillan", "price" : "369", "publish_date" : "1905-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Mammoth Book Of Urban Erotic Confessions", "author_name" : "Vintage", "price" : "559", "publish_date" : "1991-07-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "ULTIMATE WEIGHT SOLUTION", "author_name" : "India Book Distributors", "price" : "199", "publish_date" : "1995-06-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Woman In Black: Angel Of Death", "author_name" : "Random House", "price" : "369", "publish_date" : "1942-00-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dangerous", "author_name" : "RANDOM CENTURY GROUP", "price" : "399", "publish_date" : "1943-03-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sisters", "author_name" : "", "price" : "235", "publish_date" : "1904-09-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Fast Forward Mba In Negotiating And Deal Making", "author_name" : "John Wiley", "price" : "755", "publish_date" : "1940-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Killjoy", "author_name" : "Ballantine Books", "price" : "399", "publish_date" : "1953-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Honour Among Thieves", "author_name" : "PAN BOOKS LTD", "price" : "259", "publish_date" : "1945-06-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "First Sight", "author_name" : "Transworld Publishers", "price" : "259", "publish_date" : "1992-05-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "2 States The Story Of My Marriage", "author_name" : "Rupa Publications India", "price" : "149", "publish_date" : "1902-02-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Pretty Little Liars#15:Toxic", "author_name" : "Harper Collins Publishers India", "price" : "255", "publish_date" : "1988-01-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Blindsight", "author_name" : "Macmillian India Ltd", "price" : "263", "publish_date" : "1938-04-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Manuscript Found In Accra", "author_name" : "Books", "price" : "804", "publish_date" : "1934-07-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Matter Of Honor", "author_name" : "HARPER COLLINS INDIA", "price" : "319", "publish_date" : "1925-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Recruit", "author_name" : "Ballantine Books", "price" : "399", "publish_date" : "1916-07-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Crazy Sweet Fine", "author_name" : "Books", "price" : "318", "publish_date" : "1971-07-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Trickster's Choice", "author_name" : "RANDOM HOUSE", "price" : "916", "publish_date" : "1955-05-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Harry Potter And The Philosopher's Stone", "author_name" : "BLOOMSBURY", "price" : "250", "publish_date" : "1930-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Thurston House", "author_name" : "", "price" : "450", "publish_date" : "1960-05-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Girls Mudddy Mppdy Yet Magnificent", "author_name" : "Bloomsbury", "price" : "199", "publish_date" : "1916-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "London", "author_name" : "Random House Publishing Group", "price" : "788", "publish_date" : "1929-08-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "If You See Her", "author_name" : "RHUS (RS)", "price" : "399", "publish_date" : "1982-03-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Hitch Hiker's Guide To The Galaxy", "author_name" : "Random House", "price" : "1399", "publish_date" : "1997-09-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Feathers In The Wind", "author_name" : "Bloomsbury", "price" : "179", "publish_date" : "1971-09-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Nation?S Favourite ... The Uk?S Best-Loved Things", "author_name" : "", "price" : "450", "publish_date" : "1994-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Yacoubian Building", "author_name" : "Harpercollins", "price" : "639", "publish_date" : "1913-04-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Web Of Love", "author_name" : "Random House", "price" : "399", "publish_date" : "1997-09-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Silks", "author_name" : "Pan Macmillan", "price" : "235", "publish_date" : "1905-05-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Bestseller She Wrote", "author_name" : "Westland", "price" : "201", "publish_date" : "1981-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Sisters Club", "author_name" : "", "price" : "199", "publish_date" : "1960-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Decision Maker : Unlock The Potential Of Everyone In Your Organization- One Decision At A Time", "author_name" : "The Perseus Books Group", "price" : "1077", "publish_date" : "1971-00-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "In The Time Of Dinosaurs Animorphs", "author_name" : "Scholastic", "price" : "120", "publish_date" : "1965-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories by Oscar Wilde", "author_name" : "", "price" : "98", "publish_date" : "1933-00-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories by Mark Twain", "author_name" : "", "price" : "98", "publish_date" : "1952-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Stand", "author_name" : "Random House", "price" : "788", "publish_date" : "1939-09-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Darkness  Darkness", "author_name" : "Random House", "price" : "289", "publish_date" : "1987-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Heavenly Date & Other Flirtations", "author_name" : "Penguin Books", "price" : "213", "publish_date" : "1932-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "You're Trending In My Dreams", "author_name" : "Random House India", "price" : "123", "publish_date" : "1971-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dr. Forget-Me-Not", "author_name" : "Harper Collins Publishers India", "price" : "150", "publish_date" : "1966-01-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dragons At Crumbling Castle", "author_name" : "Random House Children", "price" : "260", "publish_date" : "1978-05-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dark", "author_name" : "Pan Macmillan UK", "price" : "698", "publish_date" : "1948-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Museum Of Exaordinary Thing", "author_name" : "Simon & Schuster", "price" : "263", "publish_date" : "1991-06-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Unintended Consequences: How War In Iraq Strengthened America'S Enemies", "author_name" : "Simon & Schuster", "price" : "1161", "publish_date" : "1999-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Fiery Cross", "author_name" : "Random House Publishing Group", "price" : "827", "publish_date" : "1961-02-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Angels And Demons", "author_name" : "Pocket Books", "price" : "434", "publish_date" : "1916-04-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Mr. Twilight", "author_name" : "Random House Publishing Group", "price" : "359", "publish_date" : "1956-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Girl From The Train", "author_name" : "", "price" : "259", "publish_date" : "1984-00-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Mujhse Bura Kaun  + 1 Notepad as freebie", "author_name" : "Harper Collins Publishers India", "price" : "77", "publish_date" : "1921-05-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Star Trek:The Original Series:Allegian", "author_name" : "Simon & Schuster", "price" : "363", "publish_date" : "1949-06-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Used World", "author_name" : "Simon & Schuster", "price" : "632", "publish_date" : "1930-06-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Fourth Comings", "author_name" : "Crown/Archetype", "price" : "679", "publish_date" : "1979-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Love Story", "author_name" : "Hodder & Stoughton", "price" : "129", "publish_date" : "1901-04-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Every Scandalous Secret", "author_name" : "Avon Books", "price" : "399", "publish_date" : "1910-05-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Judas Strain", "author_name" : "", "price" : "399", "publish_date" : "1947-08-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Committed Sin", "author_name" : "", "price" : "192", "publish_date" : "1912-02-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Reflex", "author_name" : "Pan Books", "price" : "299", "publish_date" : "1992-09-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Married But Available", "author_name" : "", "price" : "146", "publish_date" : "1955-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Daily Practice Problems for General Organic Chemistry And Hydrocarbons (Chemistry Volume-4)", "author_name" : "Arihant", "price" : "200", "publish_date" : "1966-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Trigger Mortis: A James Bond Novel", "author_name" : "Orion", "price" : "467", "publish_date" : "1987-08-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Forbidden", "author_name" : "Harpercollins", "price" : "399", "publish_date" : "1986-07-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Siren", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1984-05-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "When The Women Come Out To Dance: Stories (Leonard Elmore)", "author_name" : "William Morrow And Company", "price" : "1259", "publish_date" : "1986-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Mel6N Monster Volume Two", "author_name" : "Pan Macmillan Books", "price" : "1426", "publish_date" : "1997-04-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Claiming His Secret Son", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1944-08-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "More than a Convenient Bride", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1989-04-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Thrilling Tales & Thrills And Spills- 1/e PB", "author_name" : "", "price" : "207", "publish_date" : "1981-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Age Of Innocence", "author_name" : "Random House", "price" : "316", "publish_date" : "1996-04-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Skipping Christmas", "author_name" : "Dell", "price" : "259", "publish_date" : "1942-06-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sunny Chandler's Return", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1992-07-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sin City", "author_name" : "India Book Distributors", "price" : "236", "publish_date" : "1949-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Slightly Wicked", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1973-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Awakened", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1965-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Thodore Boone ( Young Lawyer)", "author_name" : "Hodder And Stoughton", "price" : "295", "publish_date" : "1934-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Horror Omnibus", "author_name" : "", "price" : "277", "publish_date" : "1988-02-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "No Red Roses", "author_name" : "Random House US", "price" : "399", "publish_date" : "1931-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Goodnight June", "author_name" : "Penguin", "price" : "719", "publish_date" : "1902-01-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Curse Of Brahma", "author_name" : "Rupa Publications India", "price" : "221", "publish_date" : "1906-09-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Textbook of Ecology 1st Edition", "author_name" : "Ceneage Learning India Pvt Ltd", "price" : "235", "publish_date" : "1917-02-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dark Places", "author_name" : "Orion Publishing Group", "price" : "259", "publish_date" : "1960-04-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "2009 International Plumbing Codes Handbook By Woodson R. Dodge|Author-English-Mcgraw-Hill Professional Publishing-Hardcover_Edition-1St 1St Edition", "author_name" : "McGraw-Hill Professional Publishing", "price" : "4962", "publish_date" : "1914-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Festive In Death", "author_name" : "Penguin", "price" : "1546", "publish_date" : "1905-02-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Blown Away", "author_name" : "Pan Macmillan Books", "price" : "632", "publish_date" : "1947-03-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Personhood", "author_name" : "Random House", "price" : "1032", "publish_date" : "1932-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Dance Of Durga", "author_name" : "Harper Collins Publishers India", "price" : "245", "publish_date" : "1953-04-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Spider's Web", "author_name" : "Harper Collins Publishers India", "price" : "127", "publish_date" : "1962-01-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "REMEMBER WHEN", "author_name" : "SIMON & SCHUSTER UK", "price" : "363", "publish_date" : "1999-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Criminal: A Novel (With Bonus Novella Snatched)", "author_name" : "Random House Publishing Group", "price" : "455", "publish_date" : "1970-09-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sea Swept", "author_name" : "PIATKUS BOOKS LTD", "price" : "270", "publish_date" : "1919-02-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Super Sad True Love Story", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1925-02-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Death Star: Star Wars", "author_name" : "Random House Publishing Group", "price" : "359", "publish_date" : "1996-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Amazing Machines Truckload Of Fun Box", "author_name" : "Pan Macmillan UK", "price" : "1777", "publish_date" : "1949-06-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A Season To Remember", "author_name" : "", "price" : "249", "publish_date" : "1983-01-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Inside Out", "author_name" : "Random House Publishing Group", "price" : "364", "publish_date" : "1908-07-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Alice In The Country Of Clover: Cheshire", "author_name" : "September", "price" : "639", "publish_date" : "1948-02-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Soulprint", "author_name" : "Bloomsbury Childrens", "price" : "269", "publish_date" : "1981-05-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Lying Game 6: Seven Minutes In Heaven", "author_name" : "Books", "price" : "799", "publish_date" : "1919-05-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "How To Woo A Reluctant Lady", "author_name" : "Pocket Books", "price" : "247", "publish_date" : "1995-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Swann's Way", "author_name" : "Penguin", "price" : "1467", "publish_date" : "1960-06-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rush Of Blood", "author_name" : "Little Brown Publishers", "price" : "289", "publish_date" : "1947-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Emotionally Weird", "author_name" : "", "price" : "499", "publish_date" : "1908-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Arrow", "author_name" : "Ballantine Books", "price" : "399", "publish_date" : "1987-08-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Sins Of The Mother", "author_name" : "Dell", "price" : "259", "publish_date" : "1914-01-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Deeper Than Midnight", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1991-08-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Morelli's Mistress", "author_name" : "Harper Collins Publishers India", "price" : "150", "publish_date" : "1994-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Trickster's Queen", "author_name" : "Random House Books For Young Readers", "price" : "550", "publish_date" : "1991-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Orhan Pamuk - Set Of 3 Books", "author_name" : "Faber & Faber", "price" : "857", "publish_date" : "1981-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Rebel Waltz", "author_name" : "Random House", "price" : "359", "publish_date" : "1924-02-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "One Week With The Best Man", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1902-02-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Leap Of Fait", "author_name" : "Random House", "price" : "399", "publish_date" : "1961-04-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Highlander takes a Bride", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1924-09-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Custody", "author_name" : "Random House Publishers India Private Limited", "price" : "350", "publish_date" : "1927-06-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Curse Of Brahma", "author_name" : "Rupa Publications", "price" : "204", "publish_date" : "1954-09-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "First Man In Rome", "author_name" : "Avon", "price" : "1108", "publish_date" : "1976-06-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Invisible Continent", "author_name" : "Harpercollins Publisher", "price" : "251", "publish_date" : "1963-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "One Night @ The Call Center", "author_name" : "Books", "price" : "123", "publish_date" : "1910-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Cobra In My Kitchen", "author_name" : "To Excelkaleidoscope Sof", "price" : "211", "publish_date" : "1931-06-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Wedding Night", "author_name" : "Dell", "price" : "259", "publish_date" : "1907-00-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Slightly Dangerous", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1985-08-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Ratburger", "author_name" : "Harper Collins Publishers India", "price" : "224", "publish_date" : "1934-00-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Last Night in Twisted River", "author_name" : "", "price" : "711", "publish_date" : "1989-03-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Octa6An Nothing Volume Two", "author_name" : "Candlewick Press", "price" : "1697", "publish_date" : "1932-09-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Olive Kitteridge", "author_name" : "Random House Publishing Group", "price" : "719", "publish_date" : "1925-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Eight", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1954-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Jane Austen Made Me Do It", "author_name" : "Hqn Books", "price" : "679", "publish_date" : "1986-03-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Texas! Sage", "author_name" : "Random House Publishing Group", "price" : "399", "publish_date" : "1940-01-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Firestorm", "author_name" : "Random House", "price" : "399", "publish_date" : "1990-04-03T10:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Big Neem Red Jaguar and Mrs Samson's Lammer Geier", "author_name" : "", "price" : "67", "publish_date" : "1941-04-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Dragonfly In Amber", "author_name" : "Random House", "price" : "479", "publish_date" : "1965-08-03T16:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Daily Practice Problems for Atomic Structure", "author_name" : "Arihant Publications", "price" : "151", "publish_date" : "1981-00-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Lovers and Players", "author_name" : "", "price" : "249", "publish_date" : "1968-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "I Am Half-Sick Of Shadows", "author_name" : "Random House Publishing Group", "price" : "679", "publish_date" : "1995-04-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Texas Bride", "author_name" : "RHUS (RS)", "price" : "399", "publish_date" : "1920-00-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The 80/20 Manager: Ten Ways To Become A Great Leader", "author_name" : "Little, Brown Book Group", "price" : "311", "publish_date" : "1977-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "To Romance A Charming Rogue", "author_name" : "Random House Publishing Group", "price" : "359", "publish_date" : "1901-05-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Spying In High Heels", "author_name" : "Jaico Publishing House", "price" : "239", "publish_date" : "1919-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Redemption of Callie and Kayden", "author_name" : "Little Brown Book Group", "price" : "389", "publish_date" : "1971-07-03T11:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chancellor Manuscript", "author_name" : "Random House", "price" : "399", "publish_date" : "1948-03-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Chetan Bhagat Collection", "author_name" : "", "price" : "844", "publish_date" : "1948-09-03T17:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Da Vinci Code: Special Illustrated Edition", "author_name" : "Knopf Doubleday Publishing Group", "price" : "2726", "publish_date" : "1958-00-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "St Aubyn Untitled Novel 2", "author_name" : "Picador (Pp)", "price" : "337", "publish_date" : "1912-04-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Love- Longing and Death: Mystic Stories", "author_name" : "Bibliophile South Asia", "price" : "315", "publish_date" : "1981-05-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Return Of A King: The Battle For Afghanistan", "author_name" : "BLOOMSBURY PUBLISHING", "price" : "495", "publish_date" : "1981-00-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Only on His Terms", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1983-01-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "A SEAL's Temptation", "author_name" : "Harper Collins Publishers India", "price" : "96", "publish_date" : "1952-02-03T18:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Journey Into Mohawk Country", "author_name" : "Macmillan", "price" : "879", "publish_date" : "1973-08-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Best Of Me", "author_name" : "Little Brown Book Group", "price" : "227", "publish_date" : "1930-03-03T19:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The International Bestseller Chase", "author_name" : "", "price" : "156", "publish_date" : "1915-08-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Twilight Hour", "author_name" : "Vintage", "price" : "319", "publish_date" : "1938-07-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Storyteller's secret", "author_name" : "Pan Macmillan India", "price" : "407", "publish_date" : "1980-00-03T13:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Sophies World (Reissue)  Gaarder Jostein", "author_name" : "Hachette", "price" : "339", "publish_date" : "1998-05-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Road To Omaha : 18: Hawk 2", "author_name" : "Orion Publishing Group", "price" : "347", "publish_date" : "1912-07-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Murder Room", "author_name" : "Knopf Doubleday Publishing Group", "price" : "717", "publish_date" : "1918-04-03T14:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Selected Stories by Joseph Conrad", "author_name" : "", "price" : "106", "publish_date" : "1950-02-03T12:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "Better Than Perfect : A Wild Cards Novel", "author_name" : "Bloomsbury", "price" : "260", "publish_date" : "1984-09-03T15:36:50Z", "ebook_available" : "false"}
+{"index":{}}
+{"title" : "The Krishna Key", "author_name" : "Westland", "price" : "236", "publish_date" : "1950-09-03T16:36:50Z", "ebook_available" : "false"}
