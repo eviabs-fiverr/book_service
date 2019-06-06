@@ -8,15 +8,15 @@ import (
 	"strconv"
 )
 
-type Book struct {
-	Title string
-	AuthorName string
-	Price int
+type BookJSON struct {
+	Title          string
+	AuthorName     string
+	Price          int
 	EbookAvailable bool
-	PublishDate string
+	PublishDate    string
 }
 
-func (book Book) ToJSON() string {
+func (book BookJSON) ToJSON() string {
 	json := fmt.Sprintf("%s, %s, %s, %s, %s",
 		jsonifyString("title", book.Title),
 		jsonifyString("author_name", book.AuthorName),
@@ -30,9 +30,9 @@ func (book Book) ToJSON() string {
 func randate() string {
 
 	return fmt.Sprintf("%d-0%d-03T%d:36:50Z",
-		rand.Intn(100) + 1900,
-		rand.Intn(9) + 1,
-		rand.Intn(10) + 10)
+		rand.Intn(100)+1900,
+		rand.Intn(9)+1,
+		rand.Intn(10)+10)
 }
 
 func jsonifyString(name string, value string) string {
@@ -45,9 +45,9 @@ func jsonifyNumber(name string, value string) string {
 	return json
 }
 
-func NewBook(line []string) Book {
+func NewBook(line []string) BookJSON {
 
-	book := Book{}
+	book := BookJSON{}
 
 	book.Title = line[12]
 	book.AuthorName = line[1]
